@@ -8,7 +8,7 @@ Air quality polling script with BME680
 
 ### Software
 * Python 3.5+
-* `i2c-tools`, `read-edid`, `libi2c-dev` (In the case of Raspbian 9 Stretch)
+* `python3-smbus`, `i2c-tools`, `read-edid`, `libi2c-dev` (In the case of Raspbian 9 Stretch)
 
 ## References
 ### BME680

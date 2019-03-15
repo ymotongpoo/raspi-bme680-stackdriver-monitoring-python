@@ -83,16 +83,16 @@ def resource_name(metric_type):
     return f"projects/{project_id}/metricDescriptors/{custom_type}"
 
 
-def create_double_guage_metrics(host, metric_name, description):
+def create_double_guage_metrics(metric_name, description):
     """Create guage metrics in Stackdriver Monitoring.
     The value type of it is double.
 
-    :param host: Hostname of running instance.
-    :type host: str
     :param metric_name: name of the metric.
     :type metric_name: str
     :param description: description of the metric.
     :type description: str
+    :returns: new descriptor just created
+    :rtype: 
     """
     client = monitoring_v3.MetricServiceClient()
     project_name = client.project_path(get_project_id())
@@ -104,41 +104,69 @@ def create_double_guage_metrics(host, metric_name, description):
         monitoring_v3.enums.MetricDescriptor.ValueType.DOUBLE)
     descriptor.description = description
     descriptor = client.create_metric_descriptor(project_name, descriptor)
+    return descriptor
+
+
+def create_sensor_metrics(metric_dict):
+    """Creates metrics in Stackdriver Monitoring based on the contents
+    in metric_dict.
+
+    :param metric_dict: dictionary of metric type and its description. 
+    :type metric_dict: dict[str, str]
+    """
+    for mtype, mdesc in metric_dict.items():
+        desctiptor = create_double_guage_metrics(mtype, mdesc)
+        print(f'Created {descriptor.name}.')
+
+
+def create_time_series(hostname, metric_dict):
+    """Creates TimeSeries data for Stackdriver Monitoring based on 
+    the contents in metric_dict.
+
+    :param hostname: hostname of running instance.
+    :type hostname: str
+    :param metric_dict: dictionary of metric type and its description. 
+    :type metric_dict: dict[str, str]
+    """
+    hostname = socket.gethostname()
+    series_dict = {}
+    for typ in metric_dict.keys():
+        series = monitoring_v3.types.TimeSeries()
+        series.resource.type = custom_metric(typ)
+        series.resource.labels['hostname'] = hostname
+        series_dict[typ] = series
+
+    return series_dict
 
 
 def main():
-    hostname = socket.gethostname()
-    t_descriptor = create_double_guage_metrics(
-        hostname, 'temperature', "air temperature")
-    p_descriptor = create_double_guage_metrics(
-        hostname, 'pressure', "barometric pressure")
-    h_descriptor = create_double_guage_metrics(
-        hostname, 'humidity', "air humidity")
-    r_descriptor = create_double_guage_metrics(
-        hostname, 'gas_resistance', "indicator of air quality")
-    gi_descriptor = create_double_guage_metrics(
-        hostname, 'gas_index', "")
-    mi_descriptor = create_double_guage_metrics(
-        hostname, 'meas_index', "")
-    hs_descriptor = create_double_guage_metrics(
-        hostname, 'heat_stable', "")
+    metric_dict = {
+        'temperature': "air temperature",
+        'pressure': "barometric pressure",
+        'humidity': "air humidity",
+        'gas_resistance': "indicator of air quality",
+        'gas_index': "",
+        'meas_index': "",
+        'heat_stable': ""
+    }    
+    create_sensor_metrics(metric_dict)
     
     try:
         sensor = bme680.BME680(bme680.I2C_ADDR_PRIMARY)
     except IOError:
         sensor = bme680.BME680(bme680.I2C_ADDR_SECONDARY)
     init_sensor(sensor)
+
+    hostname = socket.gethostname()
     try:
         counter = 1
+        series_dict = {}
         while True:
             if counter == 0:
-                # TODO(ymotongpoo): create TimeSeries for all descriptors.
-                pass
+                series_dict = create_time_series(hostname, metric_dict)
 
             if sensor.get_sensor_data():
-
                 data = {
-                    'host': socket.gethostname(),
                     'temperature': sensor.data.temperature,
                     'pressure': sensor.data.pressure,
                     'humidity': sensor.data.humidity,
@@ -147,8 +175,24 @@ def main():
                     'meas_index': sensor.data.meas_index,
                     'heat_stable': sensor.data.heat_stable
                 }
-                print(json.dumps(data))
+                for typ, value in data.items():
+                    series = series_dict[typ]
+                    point = series.points.add()
+                    point.value.double_value = value
+                    now = time.time()
+                    point.interval.end_time.seconds = int(now)
+                    point.interval.end_time.nano = int(
+                        (now - point.inteval.end_time.seconds) * 10**9)
+                counter += 1
+
+            if counter == 20:
+                client = monitoring_v3.MetricServiceClient()
+                project_name = client.project_path(get_project_id())
+                for series in series_dict.values():
+                    client.create_time_series(project_name, [series])
+                counter = 0
             time.sleep(1)
+
     except KeyboardInterrupt:
         pass
 

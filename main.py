@@ -65,7 +65,7 @@ def custom_metric(metric_type):
     :returns: Stacdriver Monitoring custome metric name.
     :rtype: str
     """
-    return f"custom.googleapis.com/{metric_type}"
+    return "custom.googleapis.com/{}".format(metric_type)
 
 
 def resource_name(metric_type):
@@ -80,7 +80,7 @@ def resource_name(metric_type):
     """
     project_id = get_project_id()
     custom_type = custom_metric(metric_type)
-    return f"projects/{project_id}/metricDescriptors/{custom_type}"
+    return "projects/{}/metricDescriptors/{}".format(project_id, custom_type)
 
 
 def create_double_guage_metrics(metric_name, description):
@@ -116,7 +116,7 @@ def create_sensor_metrics(metric_dict):
     """
     for mtype, mdesc in metric_dict.items():
         desctiptor = create_double_guage_metrics(mtype, mdesc)
-        print(f'Created {descriptor.name}.')
+        print("Created {}.".format(descriptor.name))
 
 
 def create_time_series(hostname, metric_dict):

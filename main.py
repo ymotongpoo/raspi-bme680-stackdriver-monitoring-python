@@ -164,11 +164,9 @@ def main():
 
     hostname = socket.gethostname()
     try:
-        counter = 0
         series_dict = {}
         while True:
-            if counter == 0:
-                series_dict = create_time_series(hostname, metric_dict)
+            series_dict = create_time_series(hostname, metric_dict)
 
             if sensor.get_sensor_data():
                 data = {
@@ -188,14 +186,11 @@ def main():
                     point.interval.end_time.seconds = int(now)
                     point.interval.end_time.nano = int(
                         (now - point.interval.end_time.seconds) * 10**9)
-                counter += 1
 
-            if counter == 20:
                 client = monitoring_v3.MetricServiceClient()
                 project_name = client.project_path(get_project_id())
                 for series in series_dict.values():
                     client.create_time_series(project_name, [series])
-                counter = 0
             time.sleep(1)
 
     except KeyboardInterrupt:

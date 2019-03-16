@@ -107,7 +107,7 @@ def create_double_guage_metrics(metric_name, description):
     hostname_label.value_type = (
         monitoring_v3.enums.LabelDescriptor.ValueType.STRING)
     hostname_label.description = "device hostname that BME680 connects to"
-    descriptor.labels = [hostname_label]
+    descriptor.labels.append(hostname_label)
     descriptor.description = description
     descriptor = client.create_metric_descriptor(project_name, descriptor)
     return descriptor

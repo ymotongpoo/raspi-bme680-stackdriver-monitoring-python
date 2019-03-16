@@ -134,7 +134,10 @@ def create_time_series(hostname, metric_dict):
     series_dict = {}
     for typ in metric_dict.keys():
         series = monitoring_v3.types.TimeSeries()
-        series.resource.type = custom_metric(typ)
+        series.metric.type = custom_metric(typ)
+        # refer resouce type list:
+        # https://cloud.google.com/monitoring/custom-metrics/creating-metrics#which-resource
+        series.resource.type = 'generic_node'
         series.resource.labels['hostname'] = hostname
         series_dict[typ] = series
 

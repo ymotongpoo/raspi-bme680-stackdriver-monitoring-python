@@ -13,7 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Run main.py
-export GOOGLE_APPLICATION_CREDENTIALS="$HOME/credentials.json"
-export GOOGLE_CLOUD_PROJECT="yoshifumi-cloud-demo"
-.venv/bin/python3 main.py
+# Installing `smbus` via pip in venv doesn't work well in Raspbian Stretch.
+# Using `python3-smbus` here instaed.
+python3 -m venv --system-site-packages .venv
+TMPDIR=$HOME/venvtmp
+
+if [ -d $TMPDIR ]; then
+    rm -rf $TMPDIR
+fi
+mkdir $TMPDIR
+.venv/bin/pip install --cache-dir=$TMPDIR/cache --build=$TMPDIR/build \
+    -r requirements.txt -c constraints.txt

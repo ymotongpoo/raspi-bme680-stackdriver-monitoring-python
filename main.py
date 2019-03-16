@@ -102,6 +102,10 @@ def create_double_guage_metrics(metric_name, description):
         monitoring_v3.enums.MetricDescriptor.MetricKind.GAUGE)
     descriptor.value_type = (
         monitoring_v3.enums.MetricDescriptor.ValueType.DOUBLE)
+    descriptor.label.key = "hostname"
+    descriptor.label.value_type = (
+        monitoring_v3.enums.LabelDescriptor.ValueType.STRING)
+    descriptor.label.description = "device hostname that BME680 connects to"
     descriptor.description = description
     descriptor = client.create_metric_descriptor(project_name, descriptor)
     return descriptor
@@ -135,10 +139,10 @@ def create_time_series(hostname, metric_dict):
     for typ in metric_dict.keys():
         series = monitoring_v3.types.TimeSeries()
         series.metric.type = custom_metric(typ)
+        series.metric.labels['hostname'] = hostname
         # refer resouce type list:
         # https://cloud.google.com/monitoring/custom-metrics/creating-metrics#which-resource
         series.resource.type = 'generic_node'
-        series.resource.labels['hostname'] = hostname
         series_dict[typ] = series
 
     return series_dict

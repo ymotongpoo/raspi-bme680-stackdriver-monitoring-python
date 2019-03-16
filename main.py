@@ -184,7 +184,7 @@ def main():
                     now = time.time()
                     point.interval.end_time.seconds = int(now)
                     point.interval.end_time.nano = int(
-                        (now - point.inteval.end_time.seconds) * 10**9)
+                        (now - point.interval.end_time.seconds) * 10**9)
                 counter += 1
 
             if counter == 20:

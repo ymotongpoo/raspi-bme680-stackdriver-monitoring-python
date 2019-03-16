@@ -127,6 +127,8 @@ def create_time_series(hostname, metric_dict):
     :type hostname: str
     :param metric_dict: dictionary of metric type and its description. 
     :type metric_dict: dict[str, str]
+    :returns: dictionary of metric type and time series data.
+    :rtype: dict[str, monitoring_v3.types.TimeSeries]
     """
     hostname = socket.gethostname()
     series_dict = {}
@@ -159,7 +161,7 @@ def main():
 
     hostname = socket.gethostname()
     try:
-        counter = 1
+        counter = 0
         series_dict = {}
         while True:
             if counter == 0:

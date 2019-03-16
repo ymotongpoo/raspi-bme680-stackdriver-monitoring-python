@@ -115,7 +115,7 @@ def create_sensor_metrics(metric_dict):
     :type metric_dict: dict[str, str]
     """
     for mtype, mdesc in metric_dict.items():
-        desctiptor = create_double_guage_metrics(mtype, mdesc)
+        descriptor = create_double_guage_metrics(mtype, mdesc)
         print("Created {}.".format(descriptor.name))
 
 

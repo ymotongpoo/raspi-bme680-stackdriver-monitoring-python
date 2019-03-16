@@ -96,7 +96,7 @@ def create_double_guage_metrics(metric_name, description):
     """
     client = monitoring_v3.MetricServiceClient()
     project_name = client.project_path(get_project_id())
-    descriptor = monitoring_v3.types.MericDescriptor()
+    descriptor = monitoring_v3.types.MetricDescriptor()
     descriptor.type = custom_metric(metric_name)
     descriptor.metric_kind = (
         monitoring_v3.enums.MetricDescriptor.MetricKind.GAUGE)

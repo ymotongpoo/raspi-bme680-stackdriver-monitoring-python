@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2019 Yoshi Yamaguchi
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,10 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Run main.py
-# set YAHOO_APP_ID for weather observation report.
-PROJECT_HOME="$HOME/raspi-airquality"
-export YAHOO_APP_ID
-export GOOGLE_APPLICATION_CREDENTIALS="$HOME/credentials.json"
-export GOOGLE_CLOUD_PROJECT="yoshifumi-cloud-demo"
-$PROJECT_HOME/.venv/bin/python3 $PROJECT_HOME/main.py
+# copy this file in /etc/systemd/system and
+# run `sudo systemctl list-unit-files --type=service` to see
+# if this service is properly registered.
+[Unit]
+Description=air condition tracker deamon
+
+[Service]
+ExecStart=/home/pi/raspi-airquality/run.bash
+Restart=always
+Type=simple
+User=pi
+Group=pi
+
+[Install]
+WantedBy=multi-user.target

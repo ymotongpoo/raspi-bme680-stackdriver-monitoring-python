@@ -14,6 +14,8 @@
 # limitations under the License.
 
 # Run main.py
+# set YAHOO_APP_ID for weather observation report.
+export YAHOO_APP_ID
 export GOOGLE_APPLICATION_CREDENTIALS="$HOME/credentials.json"
 export GOOGLE_CLOUD_PROJECT="yoshifumi-cloud-demo"
 .venv/bin/python3 main.py

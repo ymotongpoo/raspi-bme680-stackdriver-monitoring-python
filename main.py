@@ -182,7 +182,7 @@ def create_time_series(hostname, metric_dict):
     for typ in metric_dict.keys():
         series = monitoring_v3.types.TimeSeries()
         series.metric.type = custom_metric(typ)
-        series.metric.labels['rainfall'] = rainfall
+        series.metric.labels['rainfall'] = str(rainfall)
         # refer resouce type list:
         # https://cloud.google.com/monitoring/custom-metrics/creating-metrics#which-resource
         series.resource.type = 'generic_node'

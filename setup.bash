@@ -22,5 +22,9 @@ if [ -d $TMPDIR ]; then
     rm -rf $TMPDIR
 fi
 mkdir $TMPDIR
-.venv/bin/pip install --cache-dir=$TMPDIR/cache --build=$TMPDIR/build \
-    -r requirements.txt -c constraints.txt
+.venv/bin/pip install \
+    --extra-index-url=https://www.piwheels.org/simple \
+    --cache-dir=$TMPDIR/cache \
+    --build=$TMPDIR/build \
+    -r requirements.txt \
+    -c constraints.txt

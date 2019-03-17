@@ -188,7 +188,7 @@ def create_time_series(hostname, metric_dict):
         series.resource.type = 'generic_node'
         # refer required labels for generic_node
         # https://cloud.google.com/monitoring/api/resources#tag_generic_node
-        series.resource.labels['location'] = "home"
+        series.resource.labels['location'] = 'asia-northeast1-a'
         series.resource.labels['namespace'] = RESOURCE_NAMESPACE
         series.resource.labels['node_id'] = hostname
         series_dict[typ] = series

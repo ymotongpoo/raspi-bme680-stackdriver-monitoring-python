@@ -241,8 +241,7 @@ def main():
 
                 client = monitoring_v3.MetricServiceClient()
                 project_name = client.project_path(get_project_id())
-                for series in series_dict.values():
-                    client.create_time_series(project_name, [series])
+                client.create_time_series(project_name, [list(series_dict.values())])
             time.sleep(POLL_INTERVAL)
 
     except KeyboardInterrupt:

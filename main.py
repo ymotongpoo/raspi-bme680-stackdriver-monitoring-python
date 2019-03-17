@@ -23,7 +23,7 @@ from google.cloud import monitoring_v3
 
 
 # ref: https://developer.yahoo.co.jp/webapi/map/openlocalplatform/v1/weather.html#limit
-POLL_INTERVAL = 2
+POLL_INTERVAL = 10
 WEATHER_LONG = "139.7041"
 WEATHER_LAT  = "35.6618"
 RESOURCE_NAMESPACE = "ymotongpoo"

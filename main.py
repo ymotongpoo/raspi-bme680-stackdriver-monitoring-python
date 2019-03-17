@@ -16,9 +16,17 @@ import json
 import os
 import socket
 import time
+import urllib.request
 
 import bme680
 from google.cloud import monitoring_v3
+
+
+# ref: https://developer.yahoo.co.jp/webapi/map/openlocalplatform/v1/weather.html#limit
+POLL_INTERVAL = 2
+WEATHER_LONG = "139.7041"
+WEATHER_LAT  = "35.6618"
+RESOURCE_NAMESPACE = "ymotongpoo"
 
 
 def init_sensor(sensor):
@@ -37,6 +45,38 @@ def init_sensor(sensor):
     sensor.select_gas_heater_profile(0)
     sensor.set_power_mode(bme680.FORCED_MODE)
 
+
+class MissingAppIdError(Exception):
+    pass
+
+def fetch_weather(long, lat):
+    """Fetch weather data from Yahoo! Japan Weather API.
+
+    :param long: longitude
+    :type long: str
+    :param lat: latitude
+    :type lat: str
+    :returns: observed weather
+    :rtype: str
+    :raises MissingAppIdError: When Yahoo! Japan App ID is not set in OS environment variables.
+    """
+    app_id = os.environ['YAHOO_APP_ID']
+    if not app_id:
+        raise MissingAppIdError(
+            "Set Yahoo! Japan App ID from developers dashboard. " +
+            "Check following URL. https://e.developer.yahoo.co.jp/dashboard/")
+
+    api_url = ("https://maps.yahooapis.jp/weather/V1/place?"+
+        "coordinates={},{}&appid={}&output=json").format(long, lat, app_id)
+    req = urllib.request.Request(api_url)
+    with urllib.request.urlopen(req) as resp:
+        body = resp.read()
+        obj = json.loads(data.decode('utf-8'))
+        weathers = obj['Feature'][0]['Property']['WeatherList']['Weather']
+        for weather in weathers:
+            if weather['Type'] == 'observation':
+                return weather['Type']
+    return 'Unknown'
 
 class MissingProjectIdError(Exception):
     pass
@@ -137,13 +177,19 @@ def create_time_series(hostname, metric_dict):
     """
     hostname = socket.gethostname()
     series_dict = {}
+    weather = fetch_weather(WEATHER_LONG, WEATHER_LAT)
     for typ in metric_dict.keys():
         series = monitoring_v3.types.TimeSeries()
         series.metric.type = custom_metric(typ)
-        series.metric.labels['hostname'] = hostname
+        series.metric.labels['weather'] = weather
         # refer resouce type list:
         # https://cloud.google.com/monitoring/custom-metrics/creating-metrics#which-resource
         series.resource.type = 'generic_node'
+        # refer required labels for generic_node
+        # https://cloud.google.com/monitoring/api/resources#tag_generic_node
+        series.resource.label['location'] = "home"
+        series.resource.label['namespace'] = RESOURCE_NAMESPACE
+        series.resource.label['node_id'] = hostname
         series_dict[typ] = series
 
     return series_dict
@@ -196,7 +242,7 @@ def main():
                 project_name = client.project_path(get_project_id())
                 for series in series_dict.values():
                     client.create_time_series(project_name, [series])
-            time.sleep(1)
+            time.sleep(POLL_INTERVAL)
 
     except KeyboardInterrupt:
         pass

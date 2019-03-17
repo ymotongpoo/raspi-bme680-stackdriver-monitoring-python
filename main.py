@@ -57,7 +57,7 @@ def fetch_rainfall(long, lat):
     :param lat: latitude
     :type lat: str
     :returns: observed rainfall amount
-    :rtype: float
+    :rtype: int
     :raises MissingAppIdError: When Yahoo! Japan App ID is not set in OS environment variables.
     """
     app_id = os.environ['YAHOO_APP_ID']
@@ -68,7 +68,6 @@ def fetch_rainfall(long, lat):
 
     api_url = ("https://map.yahooapis.jp/weather/V1/place?"+
         "coordinates={},{}&appid={}&output=json").format(long, lat, app_id)
-    print(api_url)
     req = urllib.request.Request(api_url)
     with urllib.request.urlopen(req) as resp:
         body = resp.read()
@@ -76,8 +75,8 @@ def fetch_rainfall(long, lat):
         weathers = obj['Feature'][0]['Property']['WeatherList']['Weather']
         for weather in weathers:
             if weather['Type'] == 'observation':
-                return float(weather['Rainfall'])
-    return -1.0
+                return int(weather['Rainfall'])
+    return -1
 
 
 class MissingProjectIdError(Exception):
@@ -147,7 +146,7 @@ def create_double_guage_metrics(metric_name, description):
     hostname_label = descriptor.labels.add()
     hostname_label.key = "rainfall"
     hostname_label.value_type = (
-        monitoring_v3.enums.LabelDescriptor.ValueType.STRING)
+        monitoring_v3.enums.LabelDescriptor.ValueType.INT64)
     hostname_label.description = "device hostname that BME680 connects to"
     descriptor.description = description
     descriptor = client.create_metric_descriptor(project_name, descriptor)

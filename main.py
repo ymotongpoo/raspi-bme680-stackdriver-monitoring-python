@@ -143,11 +143,11 @@ def create_double_guage_metrics(metric_name, description):
         monitoring_v3.enums.MetricDescriptor.MetricKind.GAUGE)
     descriptor.value_type = (
         monitoring_v3.enums.MetricDescriptor.ValueType.DOUBLE)
-    hostname_label = descriptor.labels.add()
-    hostname_label.key = "rainfall"
-    hostname_label.value_type = (
+    rainfall_label = descriptor.labels.add()
+    rainfall_label.key = "rainfall"
+    rainfall_label.value_type = (
         monitoring_v3.enums.LabelDescriptor.ValueType.INT64)
-    hostname_label.description = "device hostname that BME680 connects to"
+    rainfall_label.description = "observed rainfall data from weather report service"
     descriptor.description = description
     descriptor = client.create_metric_descriptor(project_name, descriptor)
     return descriptor

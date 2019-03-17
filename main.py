@@ -49,15 +49,15 @@ def init_sensor(sensor):
 class MissingAppIdError(Exception):
     pass
 
-def fetch_weather(long, lat):
-    """Fetch weather data from Yahoo! Japan Weather API.
+def fetch_rainfall(long, lat):
+    """Fetch rainfall data from Yahoo! Japan Weather API.
 
     :param long: longitude
     :type long: str
     :param lat: latitude
     :type lat: str
-    :returns: observed weather
-    :rtype: str
+    :returns: observed rainfall amount
+    :rtype: float
     :raises MissingAppIdError: When Yahoo! Japan App ID is not set in OS environment variables.
     """
     app_id = os.environ['YAHOO_APP_ID']
@@ -66,17 +66,19 @@ def fetch_weather(long, lat):
             "Set Yahoo! Japan App ID from developers dashboard. " +
             "Check following URL. https://e.developer.yahoo.co.jp/dashboard/")
 
-    api_url = ("https://maps.yahooapis.jp/weather/V1/place?"+
+    api_url = ("https://map.yahooapis.jp/weather/V1/place?"+
         "coordinates={},{}&appid={}&output=json").format(long, lat, app_id)
+    print(api_url)
     req = urllib.request.Request(api_url)
     with urllib.request.urlopen(req) as resp:
         body = resp.read()
-        obj = json.loads(data.decode('utf-8'))
+        obj = json.loads(body.decode('utf-8'))
         weathers = obj['Feature'][0]['Property']['WeatherList']['Weather']
         for weather in weathers:
             if weather['Type'] == 'observation':
-                return weather['Type']
-    return 'Unknown'
+                return float(weather['Rainfall'])
+    return -1.0
+
 
 class MissingProjectIdError(Exception):
     pass
@@ -143,7 +145,7 @@ def create_double_guage_metrics(metric_name, description):
     descriptor.value_type = (
         monitoring_v3.enums.MetricDescriptor.ValueType.DOUBLE)
     hostname_label = descriptor.labels.add()
-    hostname_label.key = "hostname"
+    hostname_label.key = "rainfall"
     hostname_label.value_type = (
         monitoring_v3.enums.LabelDescriptor.ValueType.STRING)
     hostname_label.description = "device hostname that BME680 connects to"
@@ -177,11 +179,11 @@ def create_time_series(hostname, metric_dict):
     """
     hostname = socket.gethostname()
     series_dict = {}
-    weather = fetch_weather(WEATHER_LONG, WEATHER_LAT)
+    rainfall = fetch_rainfall(WEATHER_LONG, WEATHER_LAT)
     for typ in metric_dict.keys():
         series = monitoring_v3.types.TimeSeries()
         series.metric.type = custom_metric(typ)
-        series.metric.labels['weather'] = weather
+        series.metric.labels['rainfall'] = rainfall
         # refer resouce type list:
         # https://cloud.google.com/monitoring/custom-metrics/creating-metrics#which-resource
         series.resource.type = 'generic_node'

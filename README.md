@@ -1,4 +1,4 @@
-# raspi-airquality
+# raspi-bme680-stackdriver-monitoring-python
 Air quality polling script with BME680
 
 ## Prerequisites
